@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
+  </head>
+  <body>
+    <h3>Is the text right?</h3>
+    <img id="target" src="/static/sample.png" class="img-fluid"><br/>
+    <p id="text">Text</p>
+    <p>
+      <button type="button"
+	      class="btn btn-success"
+	      onclick="refresh()">Right</button>
+      <button type="button"
+	      class="btn btn-danger"
+	      onclick="refresh()">Wrong</button>
+    </p>
+    <script src="/static/main.js"></script>
+  </body>
+</html>
