@@ -27,8 +27,9 @@ async def response(request):
 
 @app.route('/api/data')
 async def data(request):
-    return JSONResponse({'string': random_string(),
-                         'image': random_image().decode()})
+    return JSONResponse(
+        {'string': random_string(),
+         'image': f'data:image/png;base64,{random_image().decode()}'})
     
 
 if __name__ == '__main__':
