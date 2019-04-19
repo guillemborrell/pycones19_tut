@@ -1,9 +1,10 @@
 function upload_response(response){
     item_key = document.getElementById("key").innerHTML;
     userid = document.getElementById("userid").innerHTML;
+    var now = new Date();
     $.post('/api/response',
 	   JSON.stringify({
-	       'when': Date(),
+	       'when': now.toUTCString(),
 	       'key_id': item_key,
 	       'userid': userid,
 	       'value': response}

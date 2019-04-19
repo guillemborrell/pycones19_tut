@@ -5,15 +5,20 @@ import click
 import random
 import json
 
-async def reply(ntask, records=10):
+async def reply(ntask, nrecords=10):
     with Rep0(dial='tcp://127.0.0.1:54321') as socket:
         while True:
-            for i in range(int(random.normalvariate(records, 4))):
+            records = []
+            for i in range(int(random.normalvariate(nrecords, 4))):
                 message = await socket.arecv()
-                parsed_message = json.loads(message)
+                records.append(json.loads(message))
                 await socket.asend(b'Response')
 
             print(f'Task {ntask} collecting messages')
+            df = (pd.DataFrame(records)
+                    .assign(when=lambda df:pd.to_datetime(df.when))
+                  )
+            print(df.head())
 
 async def parent(ntasks=4):
     async with trio.open_nursery() as nursery:
