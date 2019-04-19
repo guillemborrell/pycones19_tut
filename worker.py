@@ -4,8 +4,17 @@ import trio
 import click
 import random
 import json
+import io
+from uuid import uuid4
+from pathlib import Path
 
-async def reply(ntask, nrecords=10):
+async def save_chunk(chunk: pd.DataFrame):
+    buf = io.BytesIO()
+    chunk.to_parquet(buf)
+    await trio.Path(str(uuid4()) + '.parquet').write_bytes(buf.getvalue())
+        
+
+async def reply(ntask: int, nrecords: int=10):
     with Rep0(dial='tcp://127.0.0.1:54321') as socket:
         while True:
             records = []
@@ -15,12 +24,12 @@ async def reply(ntask, nrecords=10):
                 await socket.asend(b'Response')
 
             print(f'Task {ntask} collecting messages')
-            df = (pd.DataFrame(records)
-                    .assign(when=lambda df:pd.to_datetime(df.when))
-                  )
-            print(df.head())
+            await save_chunk(pd.DataFrame(records)
+                               .assign(when=lambda df:pd.to_datetime(df.when))
+            )
+        
 
-async def parent(ntasks=4):
+async def parent(ntasks: int=4):
     async with trio.open_nursery() as nursery:
         for i in range(ntasks):
             nursery.start_soon(reply, i)
