@@ -1,4 +1,5 @@
 from pynng import Rep0
+import pandas as pd
 import trio
 import click
 import random
@@ -8,11 +9,9 @@ async def reply(ntask, records=10):
     with Rep0(dial='tcp://127.0.0.1:54321') as socket:
         while True:
             for i in range(int(random.normalvariate(records, 4))):
-                print(f'Task {ntask} waiting for a message...')
                 message = await socket.arecv()
                 parsed_message = json.loads(message)
-                print(parsed_message)
-                await socket.asend(b'hello back')
+                await socket.asend(b'Response')
 
             print(f'Task {ntask} collecting messages')
 
