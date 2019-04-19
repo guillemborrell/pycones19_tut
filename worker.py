@@ -2,6 +2,7 @@ from pynng import Rep0
 import trio
 import click
 import random
+import json
 
 async def reply(ntask, records=10):
     with Rep0(dial='tcp://127.0.0.1:54321') as socket:
@@ -9,6 +10,8 @@ async def reply(ntask, records=10):
             for i in range(int(random.normalvariate(records, 4))):
                 print(f'Task {ntask} waiting for a message...')
                 message = await socket.arecv()
+                parsed_message = json.loads(message)
+                print(parsed_message)
                 await socket.asend(b'hello back')
 
             print(f'Task {ntask} collecting messages')

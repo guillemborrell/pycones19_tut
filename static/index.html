@@ -15,17 +15,19 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
   </head>
-  <body>
+  <body onload="boot_page()">
     <h3>Is the text right?</h3>
+    <p id="userid" style="font-size:0.4em">dkfwi</p>
+    <p id="key" style="font-size:0.4em">dkfwi</p>
     <img id="target" src="/static/sample.png" class="img-fluid"><br/>
     <p id="text">Text</p>
     <p>
       <button type="button"
 	      class="btn btn-success"
-	      onclick="refresh()">Right</button>
+	      onclick="upload_response('right')">Right</button>
       <button type="button"
 	      class="btn btn-danger"
-	      onclick="refresh()">Wrong</button>
+	      onclick="upload_response('wrong')">Wrong</button>
     </p>
     <script src="/static/main.js"></script>
   </body>
