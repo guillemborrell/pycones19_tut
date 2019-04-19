@@ -2,10 +2,15 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+from starlette.schemas import SchemaGenerator
 from utils import random_image, random_string
 from pynng import Req0
 import uvicorn
 
+schemas = SchemaGenerator(
+    {"openapi": "3.0.0", "info": {"title": "Example API",
+                                  "version": "1.0"}}
+    )
 app = Starlette(debug=True)
 app.mount('/static', app=StaticFiles(directory='static'), name='static')
 
@@ -18,19 +23,32 @@ async def homepage(request):
     return templates.TemplateResponse('index.html', {'request': request})
 
 
-@app.route('/api/response')
+@app.route("/schema", methods=["GET"], include_in_schema=False)
+def openapi_schema(request):
+    return schemas.OpenAPIResponse(request=request)
+
+
+@app.route('/api/data', methods=['GET'])
+async def data(request):
+    """
+    responses:
+      200:
+        description: Data for the application
+        examples:
+            {"string": "blahblah",
+             "image": "image/png;base64,ivfhei2..."}
+    """
+    return JSONResponse(
+        {'string': random_string(),
+         'image': f'data:image/png;base64,{random_image().decode()}'})
+    
+
+@app.route('/api/response', methods=['POST'])
 async def response(request):
     await s.asend(b'message')
     message = await s.arecv()
     return JSONResponse({'hello': message.decode()})
 
-
-@app.route('/api/data')
-async def data(request):
-    return JSONResponse(
-        {'string': random_string(),
-         'image': f'data:image/png;base64,{random_image().decode()}'})
-    
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8800)
