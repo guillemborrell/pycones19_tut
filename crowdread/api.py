@@ -7,6 +7,7 @@ from utils import random_image, random_string
 from datetime import datetime
 from pynng import Req0
 import uvicorn
+import click
 
 
 schemas = SchemaGenerator(
@@ -54,6 +55,9 @@ async def response(request):
     return UJSONResponse({'status': 'ok'})
 
 
+@click.command()
+@click.option('--host', default='0.0.0.0', help='host')
+@click.option('--port', default=8800, help='port')
 def main(host='0.0.0.0', port=8800):
     uvicorn.run(app, host=host, port=port)
 
