@@ -3,8 +3,9 @@ import pandas as pd
 import trio
 import click
 import random
-import json
+import ujson
 import io
+import sys
 from uuid import uuid4
 from pathlib import Path
 
@@ -14,13 +15,13 @@ async def save_chunk(chunk: pd.DataFrame):
     await trio.Path(str(uuid4()) + '.parquet').write_bytes(buf.getvalue())
         
 
-async def reply(ntask: int, nrecords: int=10):
+async def reply(ntask: int, nrecords: int=10, ncycles=sys.maxsize):
     with Rep0(dial='tcp://127.0.0.1:54321') as socket:
-        while True:
+        for j in range(ncycles):
             records = []
             for i in range(int(random.normalvariate(nrecords, 4))):
                 message = await socket.arecv()
-                records.append(json.loads(message))
+                records.append(ujson.loads(message))
                 await socket.asend(b'Response')
 
             print(f'Task {ntask} collecting messages')

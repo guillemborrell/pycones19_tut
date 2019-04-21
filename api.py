@@ -1,5 +1,5 @@
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import UJSONResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.schemas import SchemaGenerator
@@ -7,7 +7,7 @@ from utils import random_image, random_string
 from datetime import datetime
 from pynng import Req0
 import uvicorn
-import json
+
 
 schemas = SchemaGenerator(
     {"openapi": "3.0.0", "info": {"title": "Example API",
@@ -41,7 +41,7 @@ async def data(request):
              "key": "a237b223",
              "image": "image/png;base64,ivfhei2..."}
     """
-    return JSONResponse(
+    return UJSONResponse(
         {'string': random_string(),
          'key': random_string(),
          'image': f'data:image/png;base64,{random_image().decode()}'})
@@ -51,7 +51,7 @@ async def data(request):
 async def response(request):
     await s.asend(await request.body())
     message = await s.arecv()
-    return JSONResponse({'status': 'ok'})
+    return UJSONResponse({'status': 'ok'})
 
 
 def main(host='0.0.0.0', port=8800):
