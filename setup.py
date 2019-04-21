@@ -12,5 +12,11 @@ setup(
     long_description=long_description,
     packages=find_packages(),
     install_requires=['starlette', 'uvicorn', 'pynng', 'click',
-                      'pyarrow', 'pandas', 'ujson', 'trio']
+                      'pyarrow', 'pandas', 'ujson', 'trio'],
+    entry_points={
+        'console_scripts': [
+            'crowdread_api = crowdread.api:main',
+            'crowdread_worker = crowdread.worker:main'
+            ]
+        }
     )

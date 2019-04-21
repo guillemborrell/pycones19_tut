@@ -3,9 +3,10 @@ from starlette.responses import UJSONResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.schemas import SchemaGenerator
-from utils import random_image, random_string
+from crowdread.utils import random_image, random_string
 from datetime import datetime
 from pynng import Req0
+from pathlib import Path
 import uvicorn
 import click
 
@@ -15,7 +16,10 @@ schemas = SchemaGenerator(
                                   "version": "1.0"}}
     )
 app = Starlette(debug=True)
-app.mount('/static', app=StaticFiles(directory='static'), name='static')
+
+app.mount('/static',
+          app=StaticFiles(directory=Path(__file__).parent / 'static'),
+          name='static')
 
 s = Req0(listen='tcp://127.0.0.1:54321')
 
