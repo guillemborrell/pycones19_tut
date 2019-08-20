@@ -29,7 +29,17 @@ function collectData(player, uuid, alive, bird, pipes, frames, score){
             "w": pipes.w
         },
         "frames": frames,
-        "score": score})
+        "score": score,
+        "timestamp": (new Date).getTime()})
+}
+
+// Connection to the logger
+function sendLog(data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/log");
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(data);
+    xhr.onloadend = function(){};
 }
 
 // SELECT CVS
@@ -88,7 +98,7 @@ cvs.addEventListener("click", function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            console.log(collectData(getPlayer(), UUID, true, bird, pipes, frames, score))
+            sendLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
             bird.flap();
             FLAP.play();
             break;
@@ -206,7 +216,7 @@ const bird = {
                 this.y = cvs.height - fg.h - this.h/2;
                 if(state.current == state.game){
                     // Get data when die too
-                    console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
+                    sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
                     state.current = state.over;
                     DIE.play();
                 }
@@ -312,13 +322,13 @@ const pipes = {
             // COLLISION DETECTION
             // TOP PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
-                console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
+                sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
                 state.current = state.over;
                 HIT.play();
             }
             // BOTTOM PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
-                console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
+                sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
                 state.current = state.over;
                 HIT.play();
             }
