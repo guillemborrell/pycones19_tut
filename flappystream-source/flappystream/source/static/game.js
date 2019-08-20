@@ -6,6 +6,31 @@ function uuidv4() {
   });
 }
 
+function getPlayer(){
+    return document.getElementById('name').value
+}
+
+function collectData(player, uuid, alive, bird, pipes, frames, score){
+    return JSON.stringify({
+        "player": player,
+        "uuid": uuid,
+        "alive": alive,
+        "bird": {
+            "x": bird.x,
+            "y": bird.y,
+            "radius": bird.radius,
+            "speed": bird.speed,
+            "gravity": bird.gravity
+        },
+        "pipes": {
+            "position": pipes.position,
+            "h": pipes.h,
+            "gap": pipes.gap,
+            "w": pipes.w
+        },
+        "frames": frames,
+        "score": score})
+}
 
 // SELECT CVS
 const cvs = document.getElementById("bird");
@@ -63,24 +88,7 @@ cvs.addEventListener("click", function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            console.log(JSON.stringify({
-                "uuid": UUID,
-                "alive": true,
-                "bird": {
-                    "x": bird.x,
-                    "y": bird.y,
-                    "radius": bird.radius,
-                    "speed": bird.speed,
-                    "gravity": bird.gravity
-                },
-                "pipes": {
-                    "position": pipes.position,
-                    "h": pipes.h,
-                    "gap": pipes.gap,
-                    "w": pipes.w
-                },
-                "frames": frames,
-                "score": score}))
+            console.log(collectData(getPlayer(), UUID, true, bird, pipes, frames, score))
             bird.flap();
             FLAP.play();
             break;
@@ -197,6 +205,8 @@ const bird = {
             if(this.y + this.h/2 >= cvs.height - fg.h){
                 this.y = cvs.height - fg.h - this.h/2;
                 if(state.current == state.game){
+                    // Get data when die too
+                    console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
                     state.current = state.over;
                     DIE.play();
                 }
@@ -302,50 +312,13 @@ const pipes = {
             // COLLISION DETECTION
             // TOP PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
-                console.log(JSON.stringify({
-                "uuid": UUID,
-                "alive": false,
-                "bird": {
-                    "x": bird.x,
-                    "y": bird.y,
-                    "radius": bird.radius,
-                    "speed": bird.speed,
-                    "gravity": bird.gravity
-                },
-                "pipes": {
-                    "position": pipes.position,
-                    "h": pipes.h,
-                    "gap": pipes.gap,
-                    "w": pipes.w
-                },
-                "frames": frames,
-                "score": score}))
-
+                console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
                 state.current = state.over;
                 HIT.play();
             }
             // BOTTOM PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
-                console.log(JSON.stringify({
-                "uuid": UUID,
-                "alive": false,
-                "bird": {
-                    "x": bird.x,
-                    "y": bird.y,
-                    "radius": bird.radius,
-                    "speed": bird.speed,
-                    "gravity": bird.gravity
-                },
-                "pipes": {
-                    "position": pipes.position,
-                    "h": pipes.h,
-                    "gap": pipes.gap,
-                    "w": pipes.w
-                },
-                "frames": frames,
-                "score": score}))
-
-
+                console.log(collectData(getPlayer(), UUID, false, bird, pipes, frames, score))
                 state.current = state.over;
                 HIT.play();
             }
