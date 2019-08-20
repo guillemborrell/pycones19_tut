@@ -1,3 +1,12 @@
+// Utility
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+
 // SELECT CVS
 const cvs = document.getElementById("bird");
 const ctx = cvs.getContext("2d");
@@ -26,6 +35,8 @@ SWOOSHING.src = "audio/sfx_swooshing.wav";
 const DIE = new Audio();
 DIE.src = "audio/sfx_die.wav";
 
+let UUID = uuidv4();
+
 // GAME STATE
 const state = {
     current : 0,
@@ -48,12 +59,30 @@ cvs.addEventListener("click", function(evt){
         case state.getReady:
             state.current = state.game;
             SWOOSHING.play();
+            UUID = uuidv4();
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
+            console.log(JSON.stringify({
+                "uuid": UUID,
+                "alive": true,
+                "bird": {
+                    "x": bird.x,
+                    "y": bird.y,
+                    "radius": bird.radius,
+                    "speed": bird.speed,
+                    "gravity": bird.gravity
+                },
+                "pipes": {
+                    "position": pipes.position,
+                    "h": pipes.h,
+                    "gap": pipes.gap,
+                    "w": pipes.w
+                },
+                "frames": frames,
+                "score": score}))
             bird.flap();
             FLAP.play();
-            console.log('Flap!')
             break;
         case state.over:
             let rect = cvs.getBoundingClientRect();
@@ -126,12 +155,12 @@ const bird = {
     w : 34,
     h : 26,
     
-    radius : 12,
+    radius : 9,
     
     frame : 0,
     
-    gravity : 0.25,
-    jump : 4.6,
+    gravity : 0.18,
+    jump : 4,
     speed : 0,
     rotation : 0,
     
@@ -273,11 +302,50 @@ const pipes = {
             // COLLISION DETECTION
             // TOP PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
+                console.log(JSON.stringify({
+                "uuid": UUID,
+                "alive": false,
+                "bird": {
+                    "x": bird.x,
+                    "y": bird.y,
+                    "radius": bird.radius,
+                    "speed": bird.speed,
+                    "gravity": bird.gravity
+                },
+                "pipes": {
+                    "position": pipes.position,
+                    "h": pipes.h,
+                    "gap": pipes.gap,
+                    "w": pipes.w
+                },
+                "frames": frames,
+                "score": score}))
+
                 state.current = state.over;
                 HIT.play();
             }
             // BOTTOM PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
+                console.log(JSON.stringify({
+                "uuid": UUID,
+                "alive": false,
+                "bird": {
+                    "x": bird.x,
+                    "y": bird.y,
+                    "radius": bird.radius,
+                    "speed": bird.speed,
+                    "gravity": bird.gravity
+                },
+                "pipes": {
+                    "position": pipes.position,
+                    "h": pipes.h,
+                    "gap": pipes.gap,
+                    "w": pipes.w
+                },
+                "frames": frames,
+                "score": score}))
+
+
                 state.current = state.over;
                 HIT.play();
             }
