@@ -4,7 +4,6 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.schemas import SchemaGenerator
 from crowdread.utils import random_image, random_string
-from datetime import datetime
 from pynng import Req0
 from pathlib import Path
 import uvicorn

@@ -23,6 +23,7 @@ def flatten_record(record: dict) -> dict:
         "bird_speed": record["bird"]["speed"],
         "bird_gravity": record["bird"]["gravity"],
         "pipes_h": record["pipes"]["h"],
+        "pipes_w": record["pipes"]["w"],
         "pipes_gap": record["pipes"]["gap"],
         "pipes_position_x": [
             p["x"] for p in record["pipes"]["position"] if record["pipes"]["position"]
@@ -69,6 +70,8 @@ def read_logs(logs: Iterable[str]) -> pd.DataFrame:
         .assign(bird_x=lambda df: df.bird_x.astype(np.float64))
         .assign(pipes_h=lambda df: df.pipes_h.astype(np.float64))
         .eval("pipes_position_y = pipes_position_y + pipes_h")
+        .reset_index()
+        .drop(columns=['index'])
     )
 
 
