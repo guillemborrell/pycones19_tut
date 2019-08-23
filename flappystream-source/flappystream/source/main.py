@@ -43,7 +43,6 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
 @click.command()
 @click.option("--host", default="0.0.0.0", help="hostname or IP")
 @click.option("--port", default=8888, help="Port where the service is run")
-@click.option("--backend_address", default="tcp://127.0.0.1", help="Address for the source nng socket")
-@click.option("--backend_port", default=54321, help="Port for the source nng socket")
-def main(host="0.0.0.0", port=8888, backend_address="tcp://127.0.0.1", backend_port=54321):
-    uvicorn.run(build_app(backend_address, backend_port), host=host, port=port)
+@click.option("--backend_url", default="tcp://127.0.0.1", help="URL for the source socket")
+def main(host="0.0.0.0", port=8888, backend_url="tcp://127.0.0.1:54321"):
+    uvicorn.run(build_app(backend_url), host=host, port=port)
