@@ -1,14 +1,17 @@
 import pandas as pd
 import numpy as np
 import ujson
-from typing import Iterable
+import aiofiles
+from pathlib import Path
+from typing import Iterable, Union
 
 
 def flatten_record(record: dict) -> dict:
     """
+    Transforms the nested dict obtained from the data record to a flat dict, more suitable for storage
 
-    :param record:
-    :return:
+    :param record: (dict) Record from the data source
+    :return: (dict) Flattened record
     """
     return {
         "player": record["player"] if record["player"] else np.nan,
@@ -67,3 +70,23 @@ def read_logs(logs: Iterable[str]) -> pd.DataFrame:
         .assign(pipes_h=lambda df: df.pipes_h.astype(np.float64))
         .eval("pipes_position_y = pipes_position_y + pipes_h")
     )
+
+
+def read_log_file(f: Union[Path, str]) -> pd.DataFrame:
+    """
+    Reads a file containing data record and returns an iterable with the records as dicts
+
+    :param f:
+    :return:
+    """
+    return read_logs(Path(f).open())
+
+
+async def a_read_log_file(f: Union[Path, str]) -> Iterable[dict]:
+    """
+
+    :param f:
+    :return:
+    """
+    async with aiofiles.open(Path(f).resolve()) as f:
+        return read_logs(await f.readlines())
