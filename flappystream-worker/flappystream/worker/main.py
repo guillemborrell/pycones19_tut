@@ -18,8 +18,10 @@ async def hub(socket, nursery_url):
 async def save_to_database(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")  # Subscribe to everything
+        stream = Stream(asynchronous=False)
+        stream.map(ujson.loads).map(flatten_record).partition(10).sink(print)
         while True:
-            log = ujson.loads(await sub.arecv())
+            stream.emit(await sub.arecv())
 
 
 async def bird_y(nursery_url):
