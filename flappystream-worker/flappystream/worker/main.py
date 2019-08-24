@@ -2,6 +2,10 @@ from pynng import Pull0, Pub0, Sub0
 import click
 import ujson
 import trio
+import numpy as np
+from streamz import Stream
+from operator import itemgetter
+from flappystream.analysis import flatten_record
 
 
 async def hub(socket, nursery_url):
@@ -11,17 +15,30 @@ async def hub(socket, nursery_url):
             await pub.asend(log)
 
 
-async def echo(nursery_url):
+async def save_to_database(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")  # Subscribe to everything
         while True:
             log = ujson.loads(await sub.arecv())
 
 
+async def bird_y(nursery_url):
+    with Sub0(dial=nursery_url) as sub:
+        sub.subscribe(b"")
+        stream = Stream(asynchronous=False)
+        stream.map(ujson.loads).map(flatten_record).map(
+            itemgetter("bird_y")
+        ).sliding_window(10).map(np.mean).sink(print)
+
+        while True:
+            stream.emit(await sub.arecv())
+
+
 async def parent(socket, nursery_url):
     async with trio.open_nursery() as nursery:
-        nursery.start_soon(echo, nursery_url)
         nursery.start_soon(hub, socket, nursery_url)
+        nursery.start_soon(save_to_database, nursery_url)
+        nursery.start_soon(bird_y, nursery_url)
 
 
 @click.command()
