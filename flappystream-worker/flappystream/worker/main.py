@@ -24,7 +24,7 @@ async def save_to_database(nursery_url):
             stream.emit(await sub.arecv())
 
 
-async def bird_y(nursery_url):
+async def average_bird_y(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")
         stream = Stream(asynchronous=False)
@@ -40,7 +40,7 @@ async def parent(socket, nursery_url):
     async with trio.open_nursery() as nursery:
         nursery.start_soon(hub, socket, nursery_url)
         nursery.start_soon(save_to_database, nursery_url)
-        nursery.start_soon(bird_y, nursery_url)
+        nursery.start_soon(average_bird_y, nursery_url)
 
 
 @click.command()
