@@ -118,6 +118,36 @@ cvs.addEventListener("click", function(evt){
     }
 });
 
+document.body.onkeyup = function(evt){
+    if(evt.keyCode == 32){
+            switch(state.current){
+        case state.getReady:
+            state.current = state.game;
+            SWOOSHING.play();
+            UUID = uuidv4();
+            break;
+        case state.game:
+            if(bird.y - bird.radius <= 0) return;
+            sendLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
+            bird.flap();
+            FLAP.play();
+            break;
+        case state.over:
+            let rect = cvs.getBoundingClientRect();
+            let clickX = evt.clientX - rect.left;
+            let clickY = evt.clientY - rect.top;
+
+            // CHECK IF WE CLICK ON THE START BUTTON
+            if(clickX >= startBtn.x && clickX <= startBtn.x + startBtn.w && clickY >= startBtn.y && clickY <= startBtn.y + startBtn.h){
+                pipes.reset();
+                bird.speedReset();
+                score.reset();
+                state.current = state.getReady;
+            }
+            break;
+            }
+    }
+};
 
 // BACKGROUND
 const bg = {
