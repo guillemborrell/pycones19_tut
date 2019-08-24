@@ -98,9 +98,13 @@ cvs.addEventListener("click", function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            sendLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
+            let c_bird = bird;
+            let c_pipes = pipes;
+            let c_frames = frames;
+            let c_score = score;
             bird.flap();
             FLAP.play();
+            sendLog(collectData(getPlayer(), UUID, true, c_bird, c_pipes, c_frames, c_score));
             break;
         case state.over:
             let rect = cvs.getBoundingClientRect();
@@ -126,11 +130,15 @@ document.body.onkeyup = function(evt){
             SWOOSHING.play();
             UUID = uuidv4();
             break;
-        case state.game:
+                case state.game:
             if(bird.y - bird.radius <= 0) return;
-            sendLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
+            let c_bird = bird;
+            let c_pipes = pipes;
+            let c_frames = frames;
+            let c_score = score;
             bird.flap();
             FLAP.play();
+            sendLog(collectData(getPlayer(), UUID, true, c_bird, c_pipes, c_frames, c_score));
             break;
         case state.over:
             let rect = cvs.getBoundingClientRect();
