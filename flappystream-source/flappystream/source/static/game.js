@@ -33,13 +33,13 @@ function collectData(player, uuid, alive, bird, pipes, frames, score){
         "timestamp": (new Date).getTime()})
 }
 
-// Connection to the logger
+// Websockets
+let Socket = new WebSocket("ws://" + window.location.host + "/ws");
+
 function sendLog(data) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/log", true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.send(data);
+    Socket.send(data)
 }
+
 
 // SELECT CVS
 const cvs = document.getElementById("bird");
