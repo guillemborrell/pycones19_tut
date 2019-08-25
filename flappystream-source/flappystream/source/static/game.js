@@ -40,6 +40,9 @@ function sendLog(data) {
     Socket.send(data)
 }
 
+function collectLog(data) {
+    flaps.push(data)
+}
 
 // SELECT CVS
 const cvs = document.getElementById("bird");
@@ -87,6 +90,8 @@ const startBtn = {
     h : 29
 }
 
+let flaps = [];
+
 // CONTROL THE GAME
 cvs.addEventListener("click", function(evt){
     switch(state.current){
@@ -97,7 +102,7 @@ cvs.addEventListener("click", function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            sendLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
+            collectLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
             bird.flap();
             FLAP.play();
             break;
@@ -127,7 +132,7 @@ document.body.onkeyup = function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            sendLog(collectData(getPlayer(), UUID, true, c_bird, c_pipes, c_frames, c_score));
+            collectLog(collectData(getPlayer(), UUID, true, c_bird, c_pipes, c_frames, c_score));
             bird.flap();
             FLAP.play();
             break;
@@ -216,7 +221,6 @@ const bird = {
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
         ctx.drawImage(sprite, bird.sX, bird.sY, this.w, this.h,- this.w/2, - this.h/2, this.w, this.h);
-        
         ctx.restore();
     },
     
@@ -243,7 +247,8 @@ const bird = {
                 this.y = cvs.height - fg.h - this.h/2;
                 if(state.current == state.game){
                     // Get data when die too
-                    sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                    collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                    for (flap in flaps) {sendLog(flaps[flap])};
                     state.current = state.over;
                     DIE.play();
                 }
@@ -349,13 +354,15 @@ const pipes = {
             // COLLISION DETECTION
             // TOP PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
-                sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                for (flap in flaps) {sendLog(flaps[flap])};
                 state.current = state.over;
                 HIT.play();
             }
             // BOTTOM PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
-                sendLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
+                for (flap in flaps) {sendLog(flaps[flap])};
                 state.current = state.over;
                 HIT.play();
             }
