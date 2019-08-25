@@ -55,5 +55,6 @@ async def parent(socket, nursery_url):
     help="URL for the internal PUB-SUB queue",
 )
 def main(backend_url, nursery_url):
+    print("Starting Flappystream worker")
     with Pull0(dial=backend_url) as socket:
         trio.run(parent, socket, nursery_url)

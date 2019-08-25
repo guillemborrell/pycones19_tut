@@ -35,7 +35,8 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
         print("Accepted websocket connection")
         while True:
             mess = await ws.receive()
-            await s.asend(mess['text'].encode())
+            if "text" in mess:
+                await s.asend(mess['text'].encode())
 
         await ws.close()
 
