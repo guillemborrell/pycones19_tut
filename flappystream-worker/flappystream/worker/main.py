@@ -8,6 +8,11 @@ from operator import itemgetter
 from flappystream.analysis import flatten_record
 
 
+def unroll(x):
+    for y in x:
+        yield y
+
+
 async def hub(socket, nursery_url):
     with Pub0(listen=nursery_url) as pub:
         while True:
@@ -19,7 +24,7 @@ async def save_to_database(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")  # Subscribe to everything
         stream = Stream(asynchronous=False)
-        stream.map(ujson.loads).map(flatten_record).partition(10).sink(print)
+        stream.map(ujson.loads).flatten().map(flatten_record).partition(10).sink(print)
         while True:
             stream.emit(await sub.arecv())
 
@@ -28,7 +33,7 @@ async def average_bird_y(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")
         stream = Stream(asynchronous=False)
-        stream.map(ujson.loads).map(flatten_record).map(
+        stream.map(ujson.loads).flatten().map(flatten_record).map(
             itemgetter("bird_y")
         ).sliding_window(10).map(np.mean).sink(print)
 
@@ -55,6 +60,6 @@ async def parent(socket, nursery_url):
     help="URL for the internal PUB-SUB queue",
 )
 def main(backend_url, nursery_url):
-    print("Starting Flappystream worker")
+    print("Starting flappybird client")
     with Pull0(dial=backend_url) as socket:
         trio.run(parent, socket, nursery_url)

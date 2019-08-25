@@ -29,18 +29,12 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
         async with aiofiles.open(Path(__file__).parent / "static" / "index.html") as f:
             return Response(await f.read(), media_type="text/html")
 
-    @app.websocket_route("/ws")
-    async def ws1(ws):
-        await ws.accept()
-        print("Accepted websocket connection")
-        while True:
-            mess = await ws.receive()
-            if "text" in mess:
-                await s.asend(mess["text"].encode())
-            else:
-                print(mess)
-
-        await ws.close()
+    # Stage 1
+    @app.route("/log", methods=['POST'])
+    async def log(request):
+        # Send the message to the worker
+        await s.asend(await request.body())
+        return Response("")
 
     return app
 

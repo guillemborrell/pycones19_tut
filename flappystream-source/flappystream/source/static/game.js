@@ -11,7 +11,7 @@ function getPlayer(){
 }
 
 function collectData(player, uuid, alive, bird, pipes, frames, score){
-    return JSON.stringify({
+    return {
         "player": player,
         "uuid": uuid,
         "alive": alive,
@@ -30,14 +30,15 @@ function collectData(player, uuid, alive, bird, pipes, frames, score){
         },
         "frames": frames,
         "score": score,
-        "timestamp": (new Date).getTime()})
+        "timestamp": (new Date).getTime()}
 }
 
-// Websockets
-let Socket = new WebSocket("ws://" + window.location.host + "/ws");
-
-function sendLog(data) {
-    Socket.send(data)
+// Connection to the logger
+function sendLog() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/log", true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(flaps));
 }
 
 function collectLog(data) {
@@ -248,7 +249,7 @@ const bird = {
                 if(state.current == state.game){
                     // Get data when die too
                     collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
-                    for (flap in flaps) {sendLog(flaps[flap])};
+                    sendLog(flaps);
                     state.current = state.over;
                     DIE.play();
                 }
@@ -355,14 +356,14 @@ const pipes = {
             // TOP PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > p.y && bird.y - bird.radius < p.y + this.h){
                 collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
-                for (flap in flaps) {sendLog(flaps[flap])};
+                sendLog(flaps);
                 state.current = state.over;
                 HIT.play();
             }
             // BOTTOM PIPE
             if(bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + this.w && bird.y + bird.radius > bottomPipeYPos && bird.y - bird.radius < bottomPipeYPos + this.h){
                 collectLog(collectData(getPlayer(), UUID, false, bird, pipes, frames, score));
-                for (flap in flaps) {sendLog(flaps[flap])};
+                sendLog(flaps);
                 state.current = state.over;
                 HIT.play();
             }
