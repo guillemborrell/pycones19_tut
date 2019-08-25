@@ -37,6 +37,8 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
             mess = await ws.receive()
             if "text" in mess:
                 await s.asend(mess['text'].encode())
+            else:
+                print(mess)
 
         await ws.close()
 
