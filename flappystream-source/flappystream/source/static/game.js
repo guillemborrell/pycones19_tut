@@ -132,7 +132,7 @@ document.body.onkeyup = function(evt){
             break;
         case state.game:
             if(bird.y - bird.radius <= 0) return;
-            collectLog(collectData(getPlayer(), UUID, true, c_bird, c_pipes, c_frames, c_score));
+            collectLog(collectData(getPlayer(), UUID, true, bird, pipes, frames, score));
             bird.flap();
             FLAP.play();
             break;
