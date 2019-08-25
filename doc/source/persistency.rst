@@ -35,4 +35,16 @@ Then we will create a user and a database as follows
     postgres=# grant all privileges on database flappystream to flappystream;
     GRANT
 
+The user can also be created using the ``createuser`` command that is installed with the database. You can log into the
+database, again within the same server, with
 
+.. code::
+    psql -h localhost -U flappystream -W flappystream
+    flappystream=> \dt
+              List of relations
+     Schema | Name | Type  |    Owner
+    --------+------+-------+--------------
+     public | logs | table | flappystream
+    (1 row)
+
+You must specify the host, otherwise it will try to access the database using a UNIX socket.
