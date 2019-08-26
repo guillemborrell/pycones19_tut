@@ -39,7 +39,9 @@ function sendLog() {
     xhr.open("POST", "/log", true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(JSON.stringify(flaps));
-}
+    flaps = [];
+    };
+
 
 function collectLog(data) {
     flaps.push(data)

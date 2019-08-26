@@ -1,17 +1,18 @@
-import triopg
+import psycopg2
 import click
-import trio_asyncio
+from typing import Iterable
 
 
-async def a_create_table(database, user, password):
-    connection_string = f"postgresql://{user}:{password}@localhost/{database}"
-    async with triopg.connect(connection_string) as conn:
-        await conn.execute(f"""
+def a_create_table(database: str, user: str, password: str):
+    with psycopg2.connect(f"dbname='{database}' user='{user}' host='localhost' password='{password}'") as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
         DROP TABLE IF EXISTS logs;
         CREATE TABLE IF NOT EXISTS logs (
-            _id SERIAL PRIMARY KEY,
+            _id INTEGER,
             player VARCHAR,
-            uuid VARCHAR(36) UNIQUE,
+            uuid VARCHAR(36),
             alive BOOL,
             bird_x INTEGER,
             bird_y FLOAT,
@@ -24,17 +25,24 @@ async def a_create_table(database, user, password):
             pipes_position_x INTEGER[],
             pipes_position_y FLOAT[],
             frames INTEGER ,
-            time_stamp INTEGER,
+            time_stamp BIGINT,
             score INTEGER ,
             best INTEGER 
             );
-        """)
+        """
+        )
 
-        await conn.close()
+
+def insert_records(records: Iterable[tuple], conn: psycopg2.extensions.connection, table: str):
+    cursor = conn.cursor()
+    res = cursor.copy_from(table, records)
+    conn.commit()
+    return res
+
 
 @click.command()
-@click.option('--database', default='flappystream', help='Database name')
-@click.option('--user', default='flappystream', help='Database account yser name')
-@click.option('--password', default='flappystream', help='Database account password')
+@click.option("--database", default="flappystream", help="Database name")
+@click.option("--user", default="flappystream", help="Database account user name")
+@click.option("--password", default="flappystream", help="Database account password")
 def create_table(database, user, password):
-    trio_asyncio.run(a_create_table, database, user, password)
+    a_create_table(database, user, password)
