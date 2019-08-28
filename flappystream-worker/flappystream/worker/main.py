@@ -20,7 +20,7 @@ async def hub(socket, nursery_url):
             await pub.asend(log)
 
 
-async def save_to_database(nursery_url, conn):
+async def save_to_database(nursery_url, conn, partition_size=100):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")  # Subscribe to everything
 
@@ -30,7 +30,7 @@ async def save_to_database(nursery_url, conn):
             stream.map(ujson.loads)
             .flatten()
             .map(flatten_record)
-            .partition(10)
+            .partition(partition_size)
             .map(pd.DataFrame)
             .map(methodcaller("to_csv", header=False, sep="\t", na_rep="\\N"))
             .map(methodcaller("replace", "[", "{"))

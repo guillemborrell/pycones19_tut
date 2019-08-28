@@ -1,9 +1,7 @@
 from streamz import Stream
 import pandas as pd
 from flappystream.analysis import flatten_record
-from flappystream.worker.db import insert_records, MockedConn
 import ujson
-from functools import partial
 from operator import methodcaller
 
 
