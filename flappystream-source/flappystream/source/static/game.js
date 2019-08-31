@@ -44,7 +44,7 @@ function sendLog() {
 
 
 function collectLog(data) {
-    flaps.push(data)
+    flaps.push(JSON.parse(JSON.stringify(data)));  // Make deep copy of data
 }
 
 // SELECT CVS
