@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
-import ujson
-import aiofiles
-from pathlib import Path
-from typing import Iterable, Union
+from sklearn import metrics, model_selection, linear_model
+from typing import Tuple
 
 
 def flatten_record(record: dict) -> dict:
@@ -38,58 +36,134 @@ def flatten_record(record: dict) -> dict:
     }
 
 
-def read_logs(logs: Iterable[str]) -> pd.DataFrame:
+def build_game_independent_vars(df: pd.DataFrame) -> pd.DataFrame:
     """
 
-    :param logs:
+    :param df:
     :return:
     """
-    records = pd.DataFrame(flatten_record(ujson.loads(record)) for record in logs)
     return (
-        records.merge(
-            pd.concat(
-                [
-                    records.pipes_position_x.explode(),
-                    records.pipes_position_y.explode(),
-                ],
-                axis=1,
-            ),
-            left_index=True,
-            right_index=True,
+        df[
+            [
+                "bird_x",
+                "bird_y",
+                "bird_speed",
+                "pipes_position_x",
+                "pipes_position_y",
+                "alive",
+            ]
+        ]
+        .explode("pipes_position_x")
+        .assign(
+            pipes_position_y=lambda df1: df1.assign(idx=lambda df2: df2.index)
+            .drop_duplicates(subset="idx", keep="first")
+            .explode("pipes_position_y")
+            .pipes_position_y
         )
-        .assign(flap=lambda df: df.index.values)
-        .drop(columns=["pipes_position_x_x", "pipes_position_y_x"])
-        .rename(
-            columns={
-                "pipes_position_x_y": "pipes_position_x",
-                "pipes_position_y_y": "pipes_position_y",
-            }
-        )
-        .assign(pipes_position_x=lambda df: df.pipes_position_x.astype(np.float))
-        .assign(pipes_position_y=lambda df: df.pipes_position_y.astype(np.float))
-        .assign(bird_x=lambda df: df.bird_x.astype(np.float64))
-        .assign(pipes_h=lambda df: df.pipes_h.astype(np.float64))
-        .eval("pipes_position_y = pipes_position_y + pipes_h")
-        .reset_index()
-        .drop(columns=['index'])
+        .astype({"pipes_position_x": float, "pipes_position_y": float})
+        .eval("pipes_position_y = bird_y + pipes_position_y")
+        .eval("pipes_position_x = pipes_position_x - bird_x")
+        .assign(flap=lambda df1: df1.index)
+        .assign(pipe=lambda df1: df1.groupby("flap").cumcount())
+        .query("alive == True")
+        .drop(columns=["flap", "bird_x", "alive"])
     )
 
 
-def read_log_file(f: Union[Path, str]) -> pd.DataFrame:
+def build_game_dependent_vars(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Reads a file containing data record and returns an iterable with the records as dicts
 
-    :param f:
+    :param df:
     :return:
     """
-    return read_logs(Path(f).open())
+
+    base = (
+        df[["pipes_position_x", "alive"]]
+        .explode("pipes_position_x")
+        .assign(flap=lambda df1: df1.index)
+        .reset_index()
+    )
+
+    if base.alive.values.all():
+        return base[["alive"]]
+
+    else:
+        changes = (
+            base[lambda df2: ~df2.alive]
+            .assign(new_index=lambda df2: df2.index - len(df2))
+            .set_index("new_index")
+            .assign(alive=False)
+        )
+
+        base.update(changes)
+        return base.iloc[: -len(changes)][["alive"]]
 
 
-async def a_read_log_file(f: Union[Path, str]) -> Iterable[dict]:
+def build_game_table(df: pd.DataFrame) -> pd.DataFrame:
     """
 
-    :param f:
+    :param df:
     :return:
     """
-    async with aiofiles.open(Path(f).resolve()) as f:
-        return read_logs(await f.readlines())
+    X = build_game_independent_vars(df)
+    Y = build_game_dependent_vars(df)
+
+    return X.assign(successful=Y.alive.values)
+
+
+def build_multiple_games_table(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df:
+    :return:
+    """
+    return pd.concat(
+        (build_game_table(df1) for g, df1 in df.groupby("uuid")), ignore_index=True
+    )
+
+
+def balance_successful(x_train: np.array, y_train: np.array) -> Tuple[np.array, np.array]:
+    """
+
+    :param x_train:
+    :param y_train:
+    :return:
+    """
+    successful_mask = y_train.astype(np.bool)
+    indices = np.arange(y_train.shape[0])[successful_mask]
+
+    x_train_unsuccessful = x_train[~successful_mask]
+    y_train_unsuccessful = y_train[~successful_mask]
+
+    n_unsuccessful = 2*(y_train.shape[0] - y_train.sum())
+
+    successful_choices = np.random.choice(indices, n_unsuccessful)
+
+    x_train = np.vstack((x_train_unsuccessful, x_train[successful_choices]))
+    y_train = np.hstack((y_train_unsuccessful, y_train[successful_choices]))
+
+    return x_train, y_train
+
+
+def train_test(data: pd.DataFrame) -> float:
+    """
+
+    :param data:
+    :return:
+    """
+    data = data.dropna()
+
+    x = data.iloc[:, :5].values
+    y = data.iloc[:, 5].values.astype(np.int)
+
+    x_train, x_test, y_train, y_test = model_selection.train_test_split(
+        x, y, test_size=0.3
+    )
+
+    # Balance between the two classes
+    x_train, y_train = balance_successful(x_train, y_train)
+
+    prediction = linear_model.SGDClassifier().fit(x_train, y_train).predict(x_test)
+
+    return metrics.accuracy_score(prediction, y_test)
+
