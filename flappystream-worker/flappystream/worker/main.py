@@ -5,11 +5,10 @@ import trio
 import numpy as np
 import pandas as pd
 import psycopg2
-from io import StringIO
 from streamz import Stream
-from operator import itemgetter, methodcaller
+from operator import itemgetter
 from flappystream.analysis import flatten_record
-from flappystream.worker.db import insert_records
+from flappystream.worker.db import insert_dataframe
 from functools import partial
 
 
@@ -32,18 +31,14 @@ async def save_to_database(nursery_url, conn, partition_size=100):
             .map(flatten_record)
             .partition(partition_size)
             .map(pd.DataFrame)
-            .map(methodcaller("to_csv", header=False, sep="\t", na_rep="\\N"))
-            .map(methodcaller("replace", "[", "{"))
-            .map(methodcaller("replace", "]", "}"))
-            .map(StringIO)
-            .sink(partial(insert_records, "logs", conn))
+            .sink(partial(insert_dataframe, "logs", conn))
         )
 
         while True:
             stream.emit(await sub.arecv())
 
 
-async def average_bird_y(nursery_url):
+async def model_flap(nursery_url):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")
 
@@ -62,7 +57,7 @@ async def parent(socket, connection_string, nursery_url):
         async with trio.open_nursery() as nursery:
             nursery.start_soon(hub, socket, nursery_url)
             nursery.start_soon(save_to_database, nursery_url, conn)
-            nursery.start_soon(average_bird_y, nursery_url)
+            nursery.start_soon(model_flap, nursery_url)
 
 
 @click.command()

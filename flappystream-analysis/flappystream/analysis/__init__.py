@@ -145,6 +145,22 @@ def balance_successful(x_train: np.array, y_train: np.array) -> Tuple[np.array, 
     return x_train, y_train
 
 
+def wrangle_train_data(data: pd.DataFrame) -> Tuple[np.array, np.array]:
+    data = data.dropna()
+    x = data.iloc[:, :5].values
+    y = data.iloc[:, 5].values.astype(np.int)
+
+    return balance_successful(x, y)
+
+
+def wrangle_test_data(data: pd.DataFrame) -> Tuple[np.array, np.array]:
+    data = data.dropna()
+    x = data.iloc[:, :5].values
+    y = data.iloc[:, 5].values.astype(np.int)
+
+    return x, y
+
+
 def train_test(data: pd.DataFrame) -> float:
     """
 
@@ -166,4 +182,28 @@ def train_test(data: pd.DataFrame) -> float:
     prediction = linear_model.SGDClassifier().fit(x_train, y_train).predict(x_test)
 
     return metrics.accuracy_score(prediction, y_test)
+
+
+def train(model, data: pd.DataFrame):
+    if len(data) > 10:  # Train with enough data
+        x_train, y_train = wrangle_train_data(data)
+        try:
+            model.partial_fit(x_train, y_train, classes=np.unique(y_train))
+        except ValueError:
+            print('Set with unsuccessful flaps')
+
+    return data
+
+
+def accuracy(model, data: pd.DataFrame):
+    if len(data) > 10:  # Test with enough data
+        # TODO: try to get the model from DB
+        x_test, y_test = wrangle_test_data(data)
+        prediction = model.predict(x_test)
+        return metrics.accuracy_score(prediction, y_test)
+
+    else:
+        return 0
+
+
 

@@ -5,10 +5,15 @@ from flappystream.analysis import (
     build_multiple_games_table,
     build_game_table,
     train_test,
+    accuracy,
+    train
 )
 from pathlib import Path
 import json
 import pandas as pd
+from sklearn.linear_model import SGDClassifier
+from streamz import Stream
+from functools import partial
 
 
 def test_data_dir():
@@ -90,4 +95,20 @@ def test_train_test():
     df = pd.read_parquet(test_data_dir() / "logs.parq")
     X = build_multiple_games_table(df)
 
-    assert train_test(X) > 0.4
+    assert train_test(X) > 0.01
+
+
+def test_successive_train_test():
+    df = pd.read_parquet(test_data_dir() / "logs.parq")
+    model = SGDClassifier()
+    source = Stream()
+    result = (source
+        .map(build_game_table)
+        .map(partial(train, model))
+        .map(partial(accuracy, model))
+        .sink_to_list())
+
+    for g, d in df.groupby("uuid"):
+        source.emit(d)
+
+    assert len(result) == 24
