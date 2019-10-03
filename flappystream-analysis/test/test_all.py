@@ -5,8 +5,8 @@ from flappystream.analysis import (
     build_multiple_games_table,
     build_game_table,
     train_test,
-    accuracy,
-    train
+    model_test,
+    model_train
 )
 from pathlib import Path
 import json
@@ -104,11 +104,46 @@ def test_successive_train_test():
     source = Stream()
     result = (source
         .map(build_game_table)
-        .map(partial(train, model))
-        .map(partial(accuracy, model))
+        .map(partial(model_train, model, None))
+        .map(partial(model_test, model, None))
         .sink_to_list())
 
     for g, d in df.groupby("uuid"):
         source.emit(d)
 
     assert len(result) == 24
+
+
+def test_successive_train_test_db(postgresql_db):
+    with postgresql_db.engine.connect() as connection:
+        # Create table
+        conn = connection.connection
+        cursor = conn.cursor()
+        print(cursor)
+        cursor.execute(
+            f"""
+                DROP TABLE IF EXISTS models;
+                CREATE TABLE IF NOT EXISTS models (
+                    updated timestamptz NOT NULL default NOW(),
+                    name varchar(36),
+                    pickle bytea
+                );
+            """
+        )
+        conn.commit()
+
+        df = pd.read_parquet(test_data_dir() / "logs.parq")
+        model = SGDClassifier()
+        source = Stream()
+        result = (source
+                  .map(build_game_table)
+                  .map(partial(model_train, model, conn))
+                  .map(partial(model_test, model, conn))
+                  .sink_to_list())
+
+        for g, d in df.groupby("uuid"):
+            source.emit(d)
+
+        assert len(result) == 24
+
+

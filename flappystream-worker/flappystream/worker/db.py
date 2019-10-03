@@ -1,6 +1,7 @@
 import psycopg2
 import click
 import pandas as pd
+import pickle
 from io import StringIO
 
 
@@ -72,3 +73,19 @@ def insert_dataframe(df: pd.DataFrame, conn: psycopg2.extensions.connection, tab
     res = cursor.copy_from(table, records)
     conn.commit()
     return res
+
+
+def load_model(model_name, conn):
+    cursor = conn.cursor()
+    cursor.execute(f"select pickle from models where name = '{model_name}' order by updated desc limit 1")
+    data = cursor.fetchone()[0]
+    print(data)
+    return pickle.loads(data)
+
+
+def dump_model(model, model_name, conn):
+    cursor = conn.cursor()
+    cursor.execute("insert into models (name, pickle) values (%s, %s)",
+                   (model_name, psycopg2.Binary(pickle.dumps(model))))
+    conn.commit()
+

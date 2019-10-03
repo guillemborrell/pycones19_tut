@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
+from psycopg2.extensions import connection
+import pickle
 from sklearn import metrics, model_selection, linear_model
 from typing import Tuple
+from flappystream.worker.db import load_model, dump_model
 
 
 def flatten_record(record: dict) -> dict:
@@ -184,20 +187,43 @@ def train_test(data: pd.DataFrame) -> float:
     return metrics.accuracy_score(prediction, y_test)
 
 
-def train(model, data: pd.DataFrame):
-    if len(data) > 10:  # Train with enough data
+def model_train(model, conn: connection, data):
+    """
+
+    :param model:
+    :param data:
+    :param conn:
+    :return:
+    """
+    # Fetch the model
+    if model is None:
+        model = load_model('flap', conn)
+
+    if len(data) > 10 and model is not None:  # Train with enough data
         x_train, y_train = wrangle_train_data(data)
         try:
             model.partial_fit(x_train, y_train, classes=np.unique(y_train))
         except ValueError:
             print('Set with unsuccessful flaps')
 
+        if conn is not None:
+            dump_model(model, 'flap', conn)
+
     return data
 
 
-def accuracy(model, data: pd.DataFrame):
+def model_test(model, conn: connection, data):
+    """
+
+    :param model:
+    :param data:
+    :param conn:
+    :return:
+    """
+    if model is None:
+        model = load_model('flap', conn)
+
     if len(data) > 10:  # Test with enough data
-        # TODO: try to get the model from DB
         x_test, y_test = wrangle_test_data(data)
         prediction = model.predict(x_test)
         return metrics.accuracy_score(prediction, y_test)
