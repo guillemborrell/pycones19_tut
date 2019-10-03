@@ -2,12 +2,10 @@ from pynng import Pull0, Pub0, Sub0
 import click
 import ujson
 import trio
-import numpy as np
 import pandas as pd
 import psycopg2
 from streamz import Stream
-from operator import itemgetter
-from flappystream.analysis import flatten_record
+from flappystream.analysis import flatten_record, model_train, model_test, build_game_table
 from flappystream.worker.db import insert_dataframe
 from functools import partial
 
@@ -38,15 +36,23 @@ async def save_to_database(nursery_url, conn, partition_size=100):
             stream.emit(await sub.arecv())
 
 
-async def model_flap(nursery_url):
+async def model_flap(nursery_url, conn, partition_size=100):
     with Sub0(dial=nursery_url) as sub:
         sub.subscribe(b"")
 
         stream = Stream(asynchronous=False)
 
-        stream.map(ujson.loads).flatten().map(flatten_record).map(
-            itemgetter("bird_y")
-        ).sliding_window(10).map(np.mean).sink(print)
+        (
+            stream.map(ujson.loads)
+            .flatten()
+            .map(flatten_record)
+            .partition(partition_size)
+            .map(pd.DataFrame)
+            .map(build_game_table)
+            .map(partial(model_train, None, conn))
+            .map(partial(model_test, None, conn))
+            .sink(print)
+        )
 
         while True:
             stream.emit(await sub.arecv())
@@ -57,7 +63,7 @@ async def parent(socket, connection_string, nursery_url):
         async with trio.open_nursery() as nursery:
             nursery.start_soon(hub, socket, nursery_url)
             nursery.start_soon(save_to_database, nursery_url, conn)
-            nursery.start_soon(model_flap, nursery_url)
+            nursery.start_soon(model_flap, nursery_url, conn)
 
 
 @click.command()

@@ -60,17 +60,20 @@ def create_data_tables(database: str, user: str, password: str, only: str = ""):
             raise ValueError("Table name unknown")
 
 
-def insert_dataframe(df: pd.DataFrame, conn: psycopg2.extensions.connection, table: str):
+def insert_dataframe(table: str, conn: psycopg2.extensions.connection, data: pd.DataFrame):
     """
 
-    :param df:
-    :param conn:
     :param table:
+    :param conn:
+    :param data:
     :return:
     """
     cursor = conn.cursor()
-    records = StringIO(df.to_csv(header=False, sep="\t", na_rep="\\N").replace("[", "{").replace("]", "}"))
-    res = cursor.copy_from(table, records)
+    records = StringIO(data.to_csv(header=False, sep="\t", na_rep="\\N")
+                           .replace("[", "{")
+                           .replace("]", "}"))
+
+    res = cursor.copy_from(records, table)
     conn.commit()
     return res
 

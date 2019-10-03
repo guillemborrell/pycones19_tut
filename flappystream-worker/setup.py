@@ -20,7 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "flappystream-worker = flappystream.worker.main:main",
-            "flappystream-create-tables = flappystream.worker.db:create_tables",
+            "flappystream-create-tables = flappystream.worker.db:create_data_tables",
         ]
     },
     include_package_files=True,
