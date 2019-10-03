@@ -78,9 +78,11 @@ def insert_dataframe(df: pd.DataFrame, conn: psycopg2.extensions.connection, tab
 def load_model(model_name, conn):
     cursor = conn.cursor()
     cursor.execute(f"select pickle from models where name = '{model_name}' order by updated desc limit 1")
-    data = cursor.fetchone()[0]
-    print(data)
-    return pickle.loads(data)
+    data = cursor.fetchone()
+    if data is None:
+        return data
+    else:
+        return pickle.loads(data[0])
 
 
 def dump_model(model, model_name, conn):

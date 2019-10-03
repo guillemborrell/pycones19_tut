@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from psycopg2.extensions import connection
-import pickle
 from sklearn import metrics, model_selection, linear_model
 from typing import Tuple
 from flappystream.worker.db import load_model, dump_model
@@ -196,8 +195,11 @@ def model_train(model, conn: connection, data):
     :return:
     """
     # Fetch the model
-    if model is None:
+    if model is None: # There was no model set
         model = load_model('flap', conn)
+
+        if model is None:  # DB was empty
+            model = linear_model.SGDClassifier()
 
     if len(data) > 10 and model is not None:  # Train with enough data
         x_train, y_train = wrangle_train_data(data)

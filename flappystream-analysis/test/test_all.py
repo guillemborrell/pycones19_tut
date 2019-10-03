@@ -116,10 +116,9 @@ def test_successive_train_test():
 
 def test_successive_train_test_db(postgresql_db):
     with postgresql_db.engine.connect() as connection:
-        # Create table
         conn = connection.connection
         cursor = conn.cursor()
-        print(cursor)
+
         cursor.execute(
             f"""
                 DROP TABLE IF EXISTS models;
@@ -130,20 +129,20 @@ def test_successive_train_test_db(postgresql_db):
                 );
             """
         )
-        conn.commit()
 
         df = pd.read_parquet(test_data_dir() / "logs.parq")
-        model = SGDClassifier()
+
         source = Stream()
         result = (source
                   .map(build_game_table)
-                  .map(partial(model_train, model, conn))
-                  .map(partial(model_test, model, conn))
+                  .map(partial(model_train, None, conn))
+                  .map(partial(model_test, None, conn))
                   .sink_to_list())
 
         for g, d in df.groupby("uuid"):
             source.emit(d)
 
+        conn.commit()
         assert len(result) == 24
 
 
