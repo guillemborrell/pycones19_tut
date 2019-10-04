@@ -8,9 +8,6 @@ import aiofiles
 from pynng import Pub0
 
 
-# Stage 1
-
-
 def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
     # Stage 1
     app = Starlette(debug=True)
@@ -23,14 +20,12 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
 
     s = Pub0(listen=f"{backend_address}:{backend_port}")
 
-    # Stage 1
     @app.route("/")
     async def home(request):
         async with aiofiles.open(Path(__file__).parent / "static" / "index.html") as f:
             return Response(await f.read(), media_type="text/html")
 
-    # Stage 1
-    @app.route("/log", methods=['POST'])
+    @app.route("/log", methods=["POST"])
     async def log(request):
         # Send the message to the worker
         await s.asend(await request.body())
@@ -39,7 +34,6 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
     return app
 
 
-# Stage 1
 @click.command()
 @click.option("--host", default="0.0.0.0", help="hostname or IP")
 @click.option("--port", default=8888, help="Port where the service is run")
