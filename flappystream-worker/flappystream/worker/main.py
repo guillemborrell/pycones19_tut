@@ -1,4 +1,4 @@
-from pynng import Pull0, Pub0, Sub0
+from pynng import Pub0, Sub0
 import click
 import ujson
 import trio
@@ -86,5 +86,6 @@ def main(backend_url, nursery_url, database, user, password):
         f"dbname='{database}' user='{user}' host='localhost' password='{password}'"
     )
 
-    with Pull0(dial=backend_url) as socket:
+    with Sub0(dial=backend_url) as socket:
+        socket.subscribe(b"") #  Subscribe to everything
         trio.run(parent, socket, connection_string, nursery_url)

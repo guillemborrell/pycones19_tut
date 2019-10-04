@@ -5,7 +5,7 @@ from pathlib import Path
 import uvicorn
 import click
 import aiofiles
-from pynng import Push0
+from pynng import Pub0
 
 
 # Stage 1
@@ -21,7 +21,7 @@ def build_app(backend_address="tcp://127.0.0.1", backend_port=54321):
         name="static",
     )
 
-    s = Push0(listen=f"{backend_address}:{backend_port}")
+    s = Pub0(listen=f"{backend_address}:{backend_port}")
 
     # Stage 1
     @app.route("/")
