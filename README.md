@@ -2,7 +2,7 @@
 
 ![Screenshot](https://github.com/guillemborrell/pycones19_tut/raw/master/doc/shot.png)
 
-An instrumented flappybird game to experiment with real time striming with Python.
+An instrumented flappybird game to experiment with real time streaming with Python.
 
 The application is broken up in three independent Python applications
 
